@@ -1041,14 +1041,14 @@ class PDOMySQL
      * 打印封装的最后一条SQL语句（同getLastSql()，不一定准确）
      * @return string
      */
-     public function _sql()
-     {
-         if (self::$dbdebug===false) {
-             self::throw_exception('请先开启DEBUG模式');
-             return false;
-         }
-         return self::$queryStr;
-     }
+    public function _sql()
+    {
+        if (self::$dbdebug===false) {
+            self::throw_exception('请先开启DEBUG模式');
+            return false;
+        }
+        return self::$queryStr;
+    }
 
     /**
      * 从日志上读取SQL记录
@@ -1716,10 +1716,18 @@ function I($str)
     $param = substr($str, $pos+1);
     switch (strtoupper($type)) {
         case 'GET':
-            $result_set = $_GET[$param];
+            if ($param!='') {
+                $result_set = $_GET[$param];
+            } else {
+                $result_set = $_GET;
+            }
             break;
         case 'POST':
-            $result_set = $_POST[$param];
+            if ($param!='') {
+                $result_set = $_POST[$param];
+            } else {
+                $result_set = $_POST;
+            }
             break;
         default:
             PDOMySQL::throw_exception("I函数不支持此参数：".$str);
