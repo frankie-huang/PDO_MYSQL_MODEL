@@ -253,7 +253,7 @@ $User->join('t2 on t2.id = t1.id')->delete('t1');
 与ThinkPHP最大的不同在于使用了"_tosingle""_tomulti"关键词：
 >**"_tosingle"=>true**：进行单条件对应查询，示例：
 `$map['status&title'] =array('1','thinkphp','_tomulti'=>true);`
-即`status=1 AND title='thinkphp'`
+即`status=1 AND title='thinkphp'`<br/>
 **"_tomulti"=>true**：单字段进行多条件查询，示例：
 `$map['name'] = array('ThinkPHP',array('like','%a%'),'or','_tomulti'=>true);`
 即`name='ThinkPHP' OR name LIKE '%a%'`
