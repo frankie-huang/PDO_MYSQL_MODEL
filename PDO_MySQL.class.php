@@ -1740,6 +1740,16 @@ function I($str)
 }
 
 /**
+ * Ajax方式返回数据到客户端
+ * 暂时只支持返回json格式数据
+ */
+function ajaxReturn($data){
+    header('Content-Type:application/json; charset=utf-8');
+    $data = json_encode($data);
+    exit($data);
+}
+
+/**
  * 浏览器友好的变量输出
  * @param mixed $var 变量
  * @param boolean $echo 是否输出 默认为True 如果为false 则返回输出字符串

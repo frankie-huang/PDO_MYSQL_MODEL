@@ -9,6 +9,11 @@
  - 使用prepare+execute对SQL操作进行预处理，参数绑定并执行
  - 额外封装了ThinkPHP常用的方法：dump函数，M函数，I函数
 
+### 2017.10.02更新
+
+ - 增加了ajaxReturn函数，不过仅支持返回json格式数据
+ - 更新dump方法，使用thinkphp原封的dump方法
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -335,8 +340,11 @@ $link = M("users");
 暂时只支持get和post（需要再说）
 使用htmlspecialchars()对数据进行预处理
 #### 3.dump()
-高仿tp的dump方法。
-#### 4.getLastSql() / _sql() / getLastLog()
+~~高仿~~tp的dump方法。
+#### 4.ajaxReturn()
+Ajax方式返回数据到客户端
+暂时只支持返回json格式数据
+#### 5.getLastSql() / _sql() / getLastLog()
 `getLastSql()`和`_sql()`等效，用于打印最后一条执行的**SQL语句**（由系统封装）
 `getLastLog()`则是读取**MySQL通用查询日志**记录的最后一条SQL语句
 
