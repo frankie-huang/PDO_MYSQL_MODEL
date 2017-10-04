@@ -108,7 +108,6 @@ class PDOMySQL
             }
             self::$table=$dbtable;
             self::$link->exec('SET NAMES '.DB_CHARSET);
-            self::set_columns($dbtable);
             self::$dbVersion=self::$link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
             self::$connected=true;
             unset($configs);
@@ -261,10 +260,53 @@ class PDOMySQL
     /**
      * 解析field子句
      * @param string/array $field
+     * @param boolean $filter
      * @return $this
      */
-    public function field($field)
+    public function field($field = '', $filter = false)
     {
+        if ($field===true) {
+            //显示调用所有字段
+            self::set_columns(self::$tmp_table===''?self::$table:self::$tmp_table);
+            $columns_array = self::$columns;
+            unset($columns_array['PRI']);
+            foreach ($columns_array as $key => $val) {
+                self::$fieldString .= '`'.$val.'`';
+            }
+            return $this;
+        }
+        if ($filter===true) {
+            if (!is_string($field)&&!is_array($field)) {
+                self::throw_exception("field子句的参数只支持字符串和数组");
+                return false;
+            }
+            self::set_columns(self::$tmp_table===''?self::$table:self::$tmp_table);
+            $columns_array = self::$columns;
+            unset($columns_array['PRI']);
+            $explode_array = array();
+            if (is_string($field)) {
+                $explode_array = preg_split('/\s{0,},\s{0,}/', trim($field));
+            } elseif (is_array($field)) {
+                foreach ($field as $key => $val) {
+                    $explode_array[] = trim($val);
+                }
+            }
+            foreach ($columns_array as $key => $val) {
+                if (in_array($val, $explode_array)) {
+                    unset($columns_array[$key]);
+                }
+            }
+            foreach ($columns_array as $key => $val) {
+                self::$fieldString .= '`'.$val.'`,';
+            }
+            self::$fieldString = rtrim(self::$fieldString, ',');
+            self::$fieldString = ' '.self::$fieldString;
+            return $this;
+        }
+        if ($field===''||$field==='*') {
+            self::$fieldString = ' *';
+            return $this;
+        }
         if (!is_string($field)&&!is_array($field)) {
             self::throw_exception("field子句的参数只支持字符串和数组");
             return false;
@@ -283,10 +325,6 @@ class PDOMySQL
             self::$fieldString = rtrim(self::$fieldString, ',');
         }
         if (is_string($field)) {
-            if ($field=='*') {
-                self::$fieldString = ' *';
-                return $this;
-            }
             $field_array = explode(',', $field);
             $length = count($field_array);
             for ($i=0; $i<$length; $i++) {
@@ -557,6 +595,7 @@ class PDOMySQL
             $table_name = '`'.self::$table.'`'.self::$aliasString;
         }
         if ($primary_key_value!='') {
+            self::set_columns(self::$tmp_table===''?self::$table:self::$tmp_table);
             self::$whereStringArray[] = '`'.self::$columns['PRI'].'` = ?';
             self::$whereValueArray[] = $primary_key_value;
         }
@@ -716,6 +755,7 @@ class PDOMySQL
         }
         self::parseWhere();
         if (self::$whereString=='') {
+            self::set_columns(self::$tmp_table===''?self::$table:self::$tmp_table);
             if (is_array($field[0])&&isset($field[0][self::$columns['PRI']])) {
                 if (is_array($field[0][self::$columns['PRI']])) {
                     if ($field[0][self::$columns['PRI']][0]=='exp') {
@@ -825,6 +865,7 @@ class PDOMySQL
         }
         self::parseWhere();
         if (self::$whereString=='') {
+            self::set_columns(self::$tmp_table===''?self::$table:self::$tmp_table);
             if (isset($data[self::$columns['PRI']])) {
                 if (is_array($data[self::$columns['PRI']])) {
                     if ($data[self::$columns['PRI']][0]=='exp') {
@@ -1095,7 +1136,7 @@ class PDOMySQL
             unset($whereArrayParam['_complex']);
         }
         if (isset($whereArrayParam['_logic'])) {
-            if (in_array(strtoupper($whereArrayParam['_logic']), self::$SQL_logic)) {
+            if (in_array($whereArrayParam['_logic'], self::$SQL_logic)) {
                 $logic = ' '.strtoupper($whereArrayParam['_logic']).' ';
             } else {
                 self::throw_exception('_logic参数指定的逻辑运算符不被支持："'.$whereArrayParam['_logic'].'"');
@@ -1326,7 +1367,7 @@ class PDOMySQL
                 if (is_array($array[1])) {
                     $logic = ' AND ';
                     if (isset($array[2])) {
-                        if (in_array(strtoupper($array[2]), self::$SQL_logic)) {
+                        if (in_array($array[2], self::$SQL_logic)) {
                             $logic = ' '.strtoupper($array[2]).' ';
                         } else {
                             if (!is_string($array[2])) {
@@ -1653,6 +1694,7 @@ class PDOMySQL
      */
     public function getColumns()
     {
+        self::set_columns(self::$table);
         return self::$columns;
     }
 
@@ -1740,10 +1782,46 @@ function I($str)
 }
 
 /**
+ * 获取客户端IP地址
+ * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
+ * @param boolean $adv 是否进行高级模式获取（有可能被伪装）
+ * @return mixed
+ */
+function get_client_ip($type = 0, $adv = false)
+{
+    $type       =  $type ? 1 : 0;
+    static $ip  =   null;
+    if ($ip !== null) {
+        return $ip[$type];
+    }
+    if ($adv) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $arr    =   explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $pos    =   array_search('unknown', $arr);
+            if (false !== $pos) {
+                unset($arr[$pos]);
+            }
+            $ip     =   trim($arr[0]);
+        } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip     =   $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+            $ip     =   $_SERVER['REMOTE_ADDR'];
+        }
+    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+        $ip     =   $_SERVER['REMOTE_ADDR'];
+    }
+    // IP地址合法验证
+    $long = sprintf("%u", ip2long($ip));
+    $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
+    return $ip[$type];
+}
+
+/**
  * Ajax方式返回数据到客户端
  * 暂时只支持返回json格式数据
  */
-function ajaxReturn($data){
+function ajaxReturn($data)
+{
     header('Content-Type:application/json; charset=utf-8');
     $data = json_encode($data);
     exit($data);
@@ -1757,7 +1835,8 @@ function ajaxReturn($data){
  * @param boolean $strict 是否严谨 默认为true
  * @return void|string
  */
-function dump($var, $echo=true, $label=null, $strict=true) {
+function dump($var, $echo = true, $label = null, $strict = true)
+{
     $label = ($label === null) ? '' : rtrim($label) . ' ';
     if (!$strict) {
         if (ini_get('html_errors')) {
@@ -1778,8 +1857,9 @@ function dump($var, $echo=true, $label=null, $strict=true) {
     if ($echo) {
         echo($output);
         return null;
-    }else
+    } else {
         return $output;
+    }
 }
 
 /*自己封装的dump方法，现已废弃

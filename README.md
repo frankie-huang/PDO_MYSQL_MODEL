@@ -14,6 +14,11 @@
  - 增加了ajaxReturn函数，不过仅支持返回json格式数据
  - 更新dump方法，使用thinkphp原封的dump方法
 
+### 2017.10.04更新
+ - 增加get_client_ip函数（TP原封照搬）
+ - field方法支持获取全部字段和字段过滤
+ - 优化和解决了一两个小bug
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -100,6 +105,7 @@ $Model->where($map)->select();	//	也支持
 支持多次调用。
 #### 2.TABLE
 除了数据表前缀，支持ThinkPHP支持的所有table用法。
+**建议：在CURD链式调用放于首位。**
 #### 3.ALIAS
 支持ThinkPHP支持的所有alias用法。
 #### 4.FIELD
@@ -131,7 +137,7 @@ $Model->field(array('id','concat(name,'-',id)'=>'truename','LEFT(title,7)'=>'sub
 ```
 SELECT id,concat(name,'-',id) as truename,LEFT(title,7) as sub_title FROM table
 ```
-获取所有字段和过滤字段暂为支持。
+支持获取所有字段和过滤字段(详见ThinkPHP3.2.3文档)。
 #### 5.ORDER
 用法与ThinkPHP相同
 #### 6.LIMIT
@@ -344,7 +350,9 @@ $link = M("users");
 #### 4.ajaxReturn()
 Ajax方式返回数据到客户端
 暂时只支持返回json格式数据
-#### 5.getLastSql() / _sql() / getLastLog()
+#### 5.get_client_ip()
+获取客户端IP地址
+#### 6.getLastSql() / _sql() / getLastLog()
 `getLastSql()`和`_sql()`等效，用于打印最后一条执行的**SQL语句**（由系统封装）
 `getLastLog()`则是读取**MySQL通用查询日志**记录的最后一条SQL语句
 
