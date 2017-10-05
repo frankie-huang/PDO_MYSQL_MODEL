@@ -14,7 +14,7 @@
  - 增加了ajaxReturn函数，不过仅支持返回json格式数据
  - 更新dump方法，使用thinkphp原封的dump方法
 
-### 2017.10.04更新
+### 2017.10.05更新
  - 增加get_client_ip函数（TP原封照搬）
  - field方法支持获取全部字段和字段过滤
  - 优化和解决了一两个小bug
@@ -359,13 +359,12 @@ Ajax方式返回数据到客户端
 其中，当且仅当DEBUG模式开启，以上方法才生效。注意，使用`getLastLog()`须开启MySQL的通用查询日志以及指定MySQL通用日志目录（见[开启MySQL通用查询日志](#general_log)）。
 
 
+## Github永久更新地址
+[frankie-huang/PDO_MYSQL_MODEL][1]
 
 ## 参考链接
-[ThinkPHP3.2.3完全开发手册在线文档][1]
+[ThinkPHP3.2.3完全开发手册在线文档][2]
 
 
-
-
-
-
-  [1]: https://www.kancloud.cn/manual/thinkphp/1678
+  [1]: https://github.com/frankie-huang/PDO_MYSQL_MODEL
+  [2]: https://www.kancloud.cn/manual/thinkphp/1678

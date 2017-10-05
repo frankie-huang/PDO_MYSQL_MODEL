@@ -1186,9 +1186,9 @@ class PDOMySQL
                 if ($have_and===false&&$have_or===false) {
                     //无&和|符号
                     if ($start!==false) {
-                        $whereArraySubString .= $logic.$key." = ?";
+                        $whereArraySubString .= $key." = ?";
                     } else {
-                        $whereArraySubString .= $logic."`".$key."` = ?";
+                        $whereArraySubString .= "`".$key."` = ?";
                     }
                     self::$whereValueArray[] = $val;
                 } elseif (($have_and!==false&&$have_or===false)||($have_and===false&&$have_or!==false)) {
@@ -1639,7 +1639,7 @@ class PDOMySQL
         $arrError=$obj->errorInfo();
         //print_r($arrError);
         if ($arrError[0]!='00000') {
-            self::$error='SQLSTATE: '.$arrError[0].' <br/>SQL Error: '.$arrError[2].'<br/>Error SQL:'.self::$queryStr;
+            self::$error='SQLSTATE: '.$arrError[0].' <br/>SQL Error: <div>'.$arrError[2].'</div><br/>Error SQL: <div>'.self::$queryStr.'</div>';
             self::throw_exception(self::$error);
             return false;
         }
