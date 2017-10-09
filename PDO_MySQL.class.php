@@ -17,6 +17,8 @@ class PDOMySQL
     private $numRows=0;//上一步操作产生受影响的记录的条数
     private $MySQL_log='';//MySQL的日志文件路径
 
+    private $tmp_table='';
+    private $aliasString='';
     private $fieldString='';
     private $joinString='';
     private $whereString='';
@@ -24,8 +26,6 @@ class PDOMySQL
     private $havingString='';
     private $orderString='';
     private $limitString='';
-    private $aliasString='';
-    private $tmp_table='';
     private $fetchSql=false;
 
     private $whereStringArray=array();
@@ -575,7 +575,7 @@ class PDOMySQL
         }
         $this->fieldString = $this->fieldString=='' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->groupString.$this->limitString;
+        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->limitString;
         $buildSql = $this->replaceSpecialChar('/\?/', $this->whereValueArray, $sqlString);
         $this->clearSubString();
         return '( '.$buildSql.' )';
@@ -602,7 +602,7 @@ class PDOMySQL
         $this->limitString = ' LIMIT 1';
         $this->fieldString = $this->fieldString=='' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->groupString.$this->limitString;
+        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->limitString;
         $res = $this->query($sqlString, true);
         return $res;
     }
@@ -622,7 +622,7 @@ class PDOMySQL
         }
         $this->fieldString = $this->fieldString=='' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->groupString.$this->limitString;
+        $sqlString .= 'SELECT'.$this->fieldString.' FROM '.$table_name.$this->joinString.$this->whereString.$this->groupString.$this->havingString.$this->orderString.$this->limitString;
         if (false===$query) {
             $this->fetchSql = true;
         }
@@ -667,7 +667,9 @@ class PDOMySQL
         }
         $sqlString = 'INSERT INTO '.$table_name.' ('.$field_str.') VALUES ('.$placeholder.')';
         $res = $this->execute($sqlString);
-        if(is_string($res))return $res;
+        if (is_string($res)) {
+            return $res;
+        }
         $res = $this->link->lastInsertId();
         return $res;
     }
@@ -737,7 +739,9 @@ class PDOMySQL
         }
         $sqlString = 'INSERT INTO '.$table_name.' ('.$field_str.') VALUES '.$valueListStr;
         $res = $this->execute($sqlString);
-        if(is_string($res))return $res;
+        if (is_string($res)) {
+            return $res;
+        }
         $res = $this->link->lastInsertId();
         return $res;
     }
@@ -820,7 +824,7 @@ class PDOMySQL
             $this->throw_exception('setField子句传入的参数类型错误：'.$field[0]);
             return false;
         }
-        $this->whereValueArray = array_merge($updateValueArray,$this->whereValueArray);
+        $this->whereValueArray = array_merge($updateValueArray, $this->whereValueArray);
         if ($this->tmp_table != '') {
             $table_name = $this->tmp_table.$this->aliasString;
         } else {
@@ -913,7 +917,7 @@ class PDOMySQL
             }
         }
         $setFieldStr = rtrim($setFieldStr, ',');
-        $this->whereValueArray = array_merge($updateValueArray,$this->whereValueArray);
+        $this->whereValueArray = array_merge($updateValueArray, $this->whereValueArray);
         if ($this->tmp_table != '') {
             $table_name = $this->tmp_table.$this->aliasString;
         } else {
