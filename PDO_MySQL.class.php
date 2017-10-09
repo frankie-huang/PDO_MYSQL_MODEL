@@ -501,8 +501,16 @@ class PDOMySQL
     {
         $this->fieldString = ' COUNT('.$field.') AS f_count';
         $this->limitString = ' LIMIT 1';
+        $is_fetchSql=false;
+        if ($this->fetchSql==true) {
+            $is_fetchSql=true;
+        }
         $res = $this->select();
-        return $res[0]['f_count'];
+        if ($is_fetchSql) {
+            return $res;
+        } else {
+            return $res[0]['f_count'];
+        }
     }
 
     /**
@@ -515,8 +523,16 @@ class PDOMySQL
     {
         $this->fieldString = ' MAX('.$field.') AS f_max';
         $this->limitString = ' LIMIT 1';
+        $is_fetchSql=false;
+        if ($this->fetchSql==true) {
+            $is_fetchSql=true;
+        }
         $res = $this->select();
-        return $res[0]['f_max'];
+        if ($is_fetchSql) {
+            return $res;
+        } else {
+            return $res[0]['f_max'];
+        }
     }
 
     /**
@@ -529,8 +545,16 @@ class PDOMySQL
     {
         $this->fieldString = ' MIN('.$field.') AS f_min';
         $this->limitString = ' LIMIT 1';
+        $is_fetchSql=false;
+        if ($this->fetchSql==true) {
+            $is_fetchSql=true;
+        }
         $res = $this->select();
-        return $res[0]['f_min'];
+        if ($is_fetchSql) {
+            return $res;
+        } else {
+            return $res[0]['f_min'];
+        }
     }
 
     /**
@@ -543,8 +567,16 @@ class PDOMySQL
     {
         $this->fieldString = ' AVG('.$field.') AS f_avg';
         $this->limitString = ' LIMIT 1';
+        $is_fetchSql=false;
+        if ($this->fetchSql==true) {
+            $is_fetchSql=true;
+        }
         $res = $this->select();
-        return $res[0]['f_avg'];
+        if ($is_fetchSql) {
+            return $res;
+        } else {
+            return $res[0]['f_avg'];
+        }
     }
 
     /**
@@ -556,8 +588,16 @@ class PDOMySQL
     {
         $this->fieldString = ' SUM('.$field.') AS f_sum';
         $this->limitString = ' LIMIT 1';
+        $is_fetchSql=false;
+        if ($this->fetchSql==true) {
+            $is_fetchSql=true;
+        }
         $res = $this->select();
-        return $res[0]['f_sum'];
+        if ($is_fetchSql) {
+            return $res;
+        } else {
+            return $res[0]['f_sum'];
+        }
     }
 
     /**
