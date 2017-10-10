@@ -348,7 +348,7 @@ class PDOMySQL
             return false;
         }
         if (is_string($order)) {
-            $this->orderString = ' ORDER BY '.$oreder;
+            $this->orderString = ' ORDER BY '.$order;
         }
         if (is_array($order)) {
             $this->orderString = ' ORDER BY ';
