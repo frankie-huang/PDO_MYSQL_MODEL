@@ -23,6 +23,9 @@
  - 修复BUG
  - 解决使用count()等统计函数时使用fetchSql(true)出现问题的BUG
 
+### 2017.10.23更新
+ - 增加 TO DO list （其实是BUG清单，先挖好坑）
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -362,6 +365,9 @@ Ajax方式返回数据到客户端
 
 其中，当且仅当DEBUG模式开启，以上方法才生效。注意，使用`getLastLog()`须开启MySQL的通用查询日志以及指定MySQL通用日志目录（见[开启MySQL通用查询日志](#general_log)）。
 
+### 7.TO DO list
+ - 事务暂时不支持跨模型操作
+ - field之字段过滤目前仅支持单表查询
 
 ## Github永久更新地址
 [frankie-huang/PDO_MYSQL_MODEL][1]
