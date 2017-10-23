@@ -1378,7 +1378,8 @@ class PDOMySQL
     {
         $expQueryString = '';
         $start = strpos($column, '.');
-        if ($start===false) {
+        $specialChar_index = strpos($column, '`');
+        if ($specialChar_index===false&&$start===false) {
             $column = '`'.$column.'`';
         }
         switch (strtoupper($array[0])) {
@@ -1537,7 +1538,8 @@ class PDOMySQL
     {
         $multiQueryString = '';
         $start = strpos($column, '.');
-        if ($start===false) {
+        $specialChar_index = strpos($column, '`');
+        if ($specialChar_index===false&&$start===false) {
             $column = '`'.$column.'`';
         }
         foreach ($array as $key => $val) {
