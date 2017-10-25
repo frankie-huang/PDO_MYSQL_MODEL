@@ -884,7 +884,7 @@ class PDOMySQL
      */
     public function setInc($field, $value = 1)
     {
-        $data[$field]=array('exp',$field.' + '.$number);
+        $data[$field]=array('exp',$field.' + '.$value);
         return $this->save($data);
     }
 
@@ -896,7 +896,7 @@ class PDOMySQL
      */
     public function setDec($field, $value = 1)
     {
-        $data[$field]=array('exp',$field.' - '.$number);
+        $data[$field]=array('exp',$field.' - '.$value);
         return $this->save($data);
     }
 
