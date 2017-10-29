@@ -365,8 +365,10 @@ Ajax方式返回数据到客户端
 `getLastLog()`则是读取**MySQL通用查询日志**记录的最后一条SQL语句
 
 其中，当且仅当DEBUG模式开启，以上方法才生效。注意，使用`getLastLog()`须开启MySQL的通用查询日志以及指定MySQL通用日志目录（见[开启MySQL通用查询日志](#general_log)）。
+#### 7.html_encode()和html_decode()
+PHP的html解码/解码函数
 
-### 7.TO DO list
+## TO DO list
  - 事务暂时不支持跨模型操作
  - field之字段过滤目前仅支持单表查询
 
