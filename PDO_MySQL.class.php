@@ -1917,32 +1917,38 @@ function dump($var, $echo = true, $label = null, $strict = true)
 /**
  * PHP的html编码函数
  */
-function html_encode($str) {
+function html_encode($str)
+{
     $s = "";
-    if (strlen($str) == 0) return "";
-    $s = preg_replace('/&/',"&amp;",$str);
-    $s = preg_replace('/</', "&lt;",$s);
-    $s = preg_replace('/>/', "&gt;",$s);
-    $s = preg_replace('/ /', "&nbsp;",$s);
-    $s = preg_replace('/\'/', "&#39;",$s);
-    $s = preg_replace('/\"/', "&quot;",$s);
-    $s = preg_replace('/\n/', "<br/>",$s);
+    if (strlen($str) == 0) {
+        return "";
+    }
+    $s = preg_replace('/&/', "&amp;", $str);
+    $s = preg_replace('/</', "&lt;", $s);
+    $s = preg_replace('/>/', "&gt;", $s);
+    $s = preg_replace('/ /', "&nbsp;", $s);
+    $s = preg_replace('/\'/', "&#39;", $s);
+    $s = preg_replace('/\"/', "&quot;", $s);
+    $s = preg_replace('/\n/', "<br/>", $s);
     return $s;
 }
 
 /**
  * PHP的html解码函数
  */
-function html_decode($str) {
+function html_decode($str)
+{
     $s = "";
-    if (strlen($str) == 0) return "";
-    $s = preg_replace('/&lt;/',"<",$str);
-    $s = preg_replace('/&gt;/', ">",$s);
-    $s = preg_replace('/&nbsp;/', " ",$s);
-    $s = preg_replace('/&#39;/', "\'",$s);
-    $s = preg_replace('/&quot;/', "\"",$s);
-    $s = preg_replace('/&amp;/', "&",$s);
-    $s = preg_replace('/<br\/>/', "\n",$s);
+    if (strlen($str) == 0) {
+        return "";
+    }
+    $s = preg_replace('/&lt;/', "<", $str);
+    $s = preg_replace('/&gt;/', ">", $s);
+    $s = preg_replace('/&nbsp;/', " ", $s);
+    $s = preg_replace('/&#39;/', "\'", $s);
+    $s = preg_replace('/&quot;/', "\"", $s);
+    $s = preg_replace('/&amp;/', "&", $s);
+    $s = preg_replace('/<br\/>/', "\n", $s);
     return $s;
 }
 
