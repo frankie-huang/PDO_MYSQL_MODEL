@@ -602,7 +602,6 @@ class PDOMySQL
 
     /**
      * buildSql:构建select的SQL语句，用于子查询
-     * @param string $field
      * @return string
      */
     public function buildSql()
