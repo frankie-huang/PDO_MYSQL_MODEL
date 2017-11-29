@@ -45,11 +45,11 @@ class PDOMySQL
     public function __construct($dbtable, $dbConfig = '')
     {
         if (!class_exists("PDO")) {
-            $this->throw_exception("不支持PDO，请先开启");
+            $this->throw_exception("不支持PDO，请先开启", true);
             return false;
         }
         if ($dbConfig!=''&&!is_array($dbConfig)) {
-            $this->throw_exception("数据库配置信息参数需使用数组形式传入");
+            $this->throw_exception("数据库配置信息参数需使用数组形式传入", true);
             return false;
         }
         if ($dbConfig=='') {
@@ -1704,12 +1704,13 @@ class PDOMySQL
     /**
      * 自定义错误处理
      * @param unknown $errMsg
+     * @param boolean $ignore_debug
      */
-    public function throw_exception($errMsg)
+    public function throw_exception($errMsg, $ignore_debug = false)
     {
         $bt = debug_backtrace();
         $caller = array_shift($bt);
-        if ($this->dbdebug) {
+        if ($this->dbdebug || $ignore_debug) {
             $errMsg .= '</b><br/><br/><b>错误位置</b><br>FILE: '.$caller['file'].'   LINE: '.$caller['line'];
             $caller = array_shift($bt);
             $number = 0;
