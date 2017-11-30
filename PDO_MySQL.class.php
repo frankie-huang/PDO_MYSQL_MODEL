@@ -108,9 +108,9 @@ class PDOMySQL
                 return false;
             }
             $this->table=$dbtable;
-            if(defined('DB_CHARSET')){
+            if (defined('DB_CHARSET')) {
                 $this->link->exec('SET NAMES '.DB_CHARSET);                
-            }else if(isset($dbConfig['DB_CHARSET'])){
+            } elseif (isset($dbConfig['DB_CHARSET'])) {
                 $this->link->exec('SET NAMES '.$dbConfig['DB_CHARSET']);
             }
             $this->dbVersion=$this->link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
@@ -806,7 +806,7 @@ class PDOMySQL
         $this->parseWhere();
         if ($this->whereString=='') {
             $this->set_columns($this->tmp_table===''?$this->table:$this->tmp_table);
-            if (is_array($field[0])&&isset($field[0][$this->columns['PRI']])) {
+            if (is_array($field[0]) && isset($this->columns['PRI']) && isset($field[0][$this->columns['PRI']])) {
                 if (is_array($field[0][$this->columns['PRI']])) {
                     if ($field[0][$this->columns['PRI']][0]=='exp') {
                         $this->whereString = ' WHERE `'.$this->columns['PRI'].'` = '.trim($field[0][$this->columns['PRI']][1]);
@@ -819,6 +819,9 @@ class PDOMySQL
                     $this->whereValueArray[] = $field[0][$this->columns['PRI']];
                 }
                 unset($field[0][$this->columns['PRI']]);
+            } elseif (!isset($this->columns['PRI'])) {
+                $this->throw_exception('没有任何更新条件，且指定数据表无主键，不被允许执行更新操作');                
+                return false;
             } else {
                 $this->throw_exception('没有任何更新条件，数据对象本身也不包含主键字段，不被允许执行更新操作');
                 return false;
@@ -918,7 +921,7 @@ class PDOMySQL
         $this->parseWhere();
         if ($this->whereString=='') {
             $this->set_columns($this->tmp_table===''?$this->table:$this->tmp_table);
-            if (isset($data[$this->columns['PRI']])) {
+            if (isset($this->columns['PRI']) && isset($data[$this->columns['PRI']])) {
                 if (is_array($data[$this->columns['PRI']])) {
                     if ($data[$this->columns['PRI']][0]=='exp') {
                         $this->whereString = ' WHERE `'.$this->columns['PRI'].'` = '.trim($data[$this->columns['PRI']][1]);
@@ -931,6 +934,9 @@ class PDOMySQL
                     $this->whereValueArray[] = $data[$this->columns['PRI']];
                 }
                 unset($data[$this->columns['PRI']]);
+            } elseif (!isset($this->columns['PRI'])) {
+                $this->throw_exception('没有任何更新条件，且指定数据表无主键，不被允许执行更新操作');                
+                return false;
             } else {
                 $this->throw_exception('没有任何更新条件，数据对象本身也不包含主键字段，不被允许执行更新操作');
                 return false;
