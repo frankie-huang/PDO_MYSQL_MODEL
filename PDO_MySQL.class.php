@@ -174,7 +174,8 @@ class PDOMySQL
                     for ($i=1; $i<$param_number; $i++) {
                         $param_array[] = $where[$i];
                     }
-                    $whereSubString = sprintf($where[0], ...$param_array);
+                    $whereSubString = vsprintf($where[0], $param_array);
+                    // 或者 $whereSubString = sprintf($where[0], ...$param_array);
                 }
             }
             $whereSubString = '( '.$whereSubString.' )';
