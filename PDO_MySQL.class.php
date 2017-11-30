@@ -38,7 +38,7 @@ class PDOMySQL
      * @param string $dbtable
      * @param array $dbConfig
      * @return boolean
-     * $dbConfig数组至少需要指定hostname、username、password、dsn
+     * $dbConfig数组至少需要指定hostname、username、password、database、DB_TYPE
      * 如果想开启debug模式，指定$dbConfig["DB_DEBUG"]=true
      * 可以通过$dbConfig["MYSQL_LOG"]='/path/to/mysql.log'指定mysql的日志文件路径
      */
@@ -77,6 +77,7 @@ class PDOMySQL
                 $this->MySQL_log = $dbConfig['MYSQL_LOG'];
                 unset($dbConfig['MYSQL_LOG']);
             }
+            $dbConfig['dsn'] = $dbConfig['DB_TYPE'].":host=".$dbConfig['hostname'].";dbname=".$dbConfig['database'];
         }
         if (empty($dbConfig['hostname'])) {
             $this->throw_exception('没有定义数据库配置，请先定义');
@@ -103,11 +104,15 @@ class PDOMySQL
                 return false;
             }
             if (!$this->in_db($dbtable)) {
-                $this->throw_exception('数据库'.DB_NAME.'中不存在'.$dbtable.'表');
+                $this->throw_exception('数据库'.$dbConfig['database'].'中不存在'.$dbtable.'表');
                 return false;
             }
             $this->table=$dbtable;
-            $this->link->exec('SET NAMES '.DB_CHARSET);
+            if(defined('DB_CHARSET')){
+                $this->link->exec('SET NAMES '.DB_CHARSET);                
+            }else if(isset($dbConfig['DB_CHARSET'])){
+                $this->link->exec('SET NAMES '.$dbConfig['DB_CHARSET']);
+            }
             $this->dbVersion=$this->link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
             $this->connected=true;
             unset($configs);

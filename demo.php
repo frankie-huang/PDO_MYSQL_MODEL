@@ -4,7 +4,20 @@ require_once "PDO_MySQL.class.php";
 
 /* 以下仅为使用示例 */
 
+// 配置文件初始化
 $link = M("fills");
+
+// 参数初始化
+$dbConfig = array(
+    'hostname' => '127.0.0.1',
+    'username'=>'root',
+    'password'=>'root',
+    'database'=>'db_name',
+    'DB_TYPE'=>'mysql',
+);
+$link = M('fills', $dbConfig);
+
+
 
 ## 1. select
 
