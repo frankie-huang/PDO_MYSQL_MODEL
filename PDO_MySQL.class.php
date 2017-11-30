@@ -177,8 +177,8 @@ class PDOMySQL
                     $whereSubString = vsprintf($where[0], $param_array);
                     // 或者 $whereSubString = sprintf($where[0], ...$param_array);
                 }
+                $whereSubString = '( '.$whereSubString.' )';
             }
-            $whereSubString = '( '.$whereSubString.' )';
         } elseif (is_array($where[0])) {
             if ($param_number>1) {
                 $this->throw_exception("where子句传入数组参数仅支持一个参数");
