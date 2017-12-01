@@ -1605,23 +1605,21 @@ class PDOMySQL
         $value = trim($value);
         if (stripos($value, ' as ')!==false) {
             //字符串中有" as "
-            $match_number = preg_match('/(?<=as\s{1}).*/i', $value, $match);
-            if ($match_number==0||preg_match('/\w+/', $match[0])==0) {
-                $this->throw_exception('"'.$value.'"的as关键词后无字符');
+            $value=preg_replace('/\s+/', ' ', $value);            
+            // 匹配出as后面的字符串
+            $match_number = preg_match('/(?<=\s{1}as\s{1})\w+$/i', $value, $match);
+            if ($match_number != 1) {
+                $this->throw_exception('"'.$value.'"的匹配错误，请合法输入');
                 return false;
             }
-            if (preg_match('/\s+/', trim($match[0]))!=0) {
-                $this->throw_exception('"'.$value.'"的as关键词后出现两个单词');
-                return false;
+            $value=preg_replace('/(?<=\s{1}as\s{1})\w+$/i', '`'.$match[0].'`', $value);
+            // 匹配出as前面的字符串
+            $match_number = preg_match('/.*(?=\s{1}as\s{1}`)/i', $value, $match);
+            if (preg_match('/^\w+$/', $match[0]) == 1) {
+                $value = preg_replace('/\w+(?=\s{1}as\s{1}`)/i', '`'.$match[0].'`', $value);                
             }
-            $value=preg_replace('/(?<=as\s{1}).*/i', '`'.trim($match[0]).'`', $value);
-            $value=preg_replace('/\s+/', ' ', $value);
         } elseif (1===preg_match('/^\w+\.\w+$/', $value)) {
-            //字符串是dbname.tablename
-            if (preg_match('/\s/', $value)!=0) {
-                $this->throw_exception('"'.$value.'"中间存在非法的空格字符');
-                return false;
-            }
+            //字符串是dbname.tablename，不做任何处理
         } else {
             //其他
             if (0===preg_match('/\W+/', $value)) {
