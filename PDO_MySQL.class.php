@@ -236,7 +236,15 @@ class PDOMySQL
                         return false;
                     }
                 } else {
-                    $this->tmp_table .= '`'.trim($val).'`,';
+                    $match_times=preg_match('/\./', $val);
+                    if (0===$match_times) {
+                        $this->tmp_table .= '`'.trim($val).'`,';
+                    } elseif (1===$match_times) {
+                        $this->tmp_table .= trim($val).',';
+                    } else {
+                        $this->throw_exception('table子句数组参数的键值非法："'.$val.'"');
+                        return false;
+                    }
                 }
             }
             $this->tmp_table = rtrim($this->tmp_table, ',');
