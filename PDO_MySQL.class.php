@@ -284,9 +284,11 @@ class PDOMySQL
             $this->set_columns($this->tmp_table===''?$this->table:$this->tmp_table);
             $columns_array = $this->columns;
             unset($columns_array['PRI']);
+            $this->fieldString .= ' ';
             foreach ($columns_array as $key => $val) {
-                $this->fieldString .= '`'.$val.'`';
+                $this->fieldString .= '`'.$val.'`,';
             }
+            $this->fieldString = rtrim($this->fieldString, ',');
             return $this;
         }
         if ($filter===true) {
