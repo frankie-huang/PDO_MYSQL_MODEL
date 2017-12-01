@@ -400,7 +400,7 @@ class PDOMySQL
                 return false;
             }
             if (is_string($limit[0])) {
-                if (preg_match('/^\d+,\d+$/', $limit[0])==0&&preg_match('/^\d+$/', $limit[0])==0) {
+                if (preg_match('/^\d+\s{0,},\s{0,}\d+$/', trim($limit[0]))==0&&preg_match('/^\d+$/', trim($limit[0]))==0) {
                     $this->throw_exception("limit子句的参数非法");
                     return false;
                 }
