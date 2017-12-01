@@ -1609,12 +1609,12 @@ class PDOMySQL
             // 匹配出as后面的字符串
             $match_number = preg_match('/(?<=\s{1}as\s{1})\w+$/i', $value, $match);
             if ($match_number != 1) {
-                $this->throw_exception('"'.$value.'"的匹配错误，请合法输入');
+                $this->throw_exception('"'.$value.'"匹配错误，请合法输入');
                 return false;
             }
             $value=preg_replace('/(?<=\s{1}as\s{1})\w+$/i', '`'.$match[0].'`', $value);
             // 匹配出as前面的字符串
-            $match_number = preg_match('/.*(?=\s{1}as\s{1}`)/i', $value, $match);
+            $match_number = preg_match('/^.*(?=\s{1}as\s{1}`)/i', $value, $match);
             if (preg_match('/^\w+$/', $match[0]) == 1) {
                 $value = preg_replace('/\w+(?=\s{1}as\s{1}`)/i', '`'.$match[0].'`', $value);                
             }
