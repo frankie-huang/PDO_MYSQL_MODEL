@@ -1679,7 +1679,7 @@ class PDOMySQL
             fseek($fp, -2, SEEK_CUR);
         }
         fclose($fp);
-        return $content;
+        return trim($content);
     }
 
     /**
