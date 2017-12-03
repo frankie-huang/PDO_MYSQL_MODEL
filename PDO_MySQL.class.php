@@ -819,7 +819,7 @@ class PDOMySQL
             $this->set_columns($this->tmp_table===''?$this->table:$this->tmp_table);
             if (is_array($field[0]) && isset($this->columns['PRI']) && isset($field[0][$this->columns['PRI']])) {
                 if (is_array($field[0][$this->columns['PRI']])) {
-                    if ($field[0][$this->columns['PRI']][0]=='exp') {
+                    if (strtoupper($field[0][$this->columns['PRI']][0])=='EXP') {
                         $this->whereString = ' WHERE `'.$this->columns['PRI'].'` = '.trim($field[0][$this->columns['PRI']][1]);
                     } else {
                         $this->throw_exception('setField子句仅支持exp表达式更新');
@@ -858,7 +858,7 @@ class PDOMySQL
             }
             foreach ($field[0] as $key => $val) {
                 if (is_array($val)) {
-                    if ($val[0]=='exp') {
+                    if (strtoupper($val[0])=='EXP') {
                         if (strpos($key, '.')===false) {
                             $setFieldStr .= '`'.trim($key).'` = '.trim($val[1]).',';
                         } else {
@@ -902,7 +902,7 @@ class PDOMySQL
      */
     public function setInc($field, $value = 1)
     {
-        $data[$field]=array('exp',$field.' + '.$value);
+        $data[$field]=array('EXP',$field.' + '.$value);
         return $this->save($data);
     }
 
@@ -914,7 +914,7 @@ class PDOMySQL
      */
     public function setDec($field, $value = 1)
     {
-        $data[$field]=array('exp',$field.' - '.$value);
+        $data[$field]=array('EXP',$field.' - '.$value);
         return $this->save($data);
     }
 
@@ -934,7 +934,7 @@ class PDOMySQL
             $this->set_columns($this->tmp_table===''?$this->table:$this->tmp_table);
             if (isset($this->columns['PRI']) && isset($data[$this->columns['PRI']])) {
                 if (is_array($data[$this->columns['PRI']])) {
-                    if ($data[$this->columns['PRI']][0]=='exp') {
+                    if (strtoupper($data[$this->columns['PRI']][0])=='EXP') {
                         $this->whereString = ' WHERE `'.$this->columns['PRI'].'` = '.trim($data[$this->columns['PRI']][1]);
                     } else {
                         $this->throw_exception('save子句仅支持exp表达式更新');
@@ -958,7 +958,7 @@ class PDOMySQL
         foreach ($data as $key => $val) {
             if (is_array($val)) {
                 //支持exp表达式进行数据更新
-                if ($val[0]=='exp') {
+                if (strtoupper($val[0])=='EXP') {
                     if (strpos($key, '.')===false) {
                         $setFieldStr .= '`'.trim($key).'` = '.trim($val[1]).',';
                     } else {
