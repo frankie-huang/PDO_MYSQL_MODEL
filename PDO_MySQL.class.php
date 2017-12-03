@@ -1186,7 +1186,6 @@ class PDOMySQL
                 return false;
             }
             return trim($match[0]);
-            return $get_file_lastline;
         }
     }
 
