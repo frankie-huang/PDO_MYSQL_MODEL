@@ -112,8 +112,9 @@ class PDOMySQL
         if (empty($dbConfig['params'])) {
             $dbConfig['params'] = array();
         }
-        $dbConfig['dsn'] = $dbConfig['dbms'].':host='.$dbConfig['hostname'].';port='.$dbConfig['hostport'].';dbname='.$dbConfig['database']; 
+        $dbConfig['dsn'] = $dbConfig['dbms'].':host='.$dbConfig['hostname'].';port='.$dbConfig['hostport'].';dbname='.$dbConfig['database'];
         self::$configs[$ConfigID] = $dbConfig;
+        $this->current = $ConfigID;
         $this->config = $dbConfig;
         if (isset($dbConfig['pconnect']) && $dbConfig['pconnect'] === true) {
             //开启长连接，添加到配置数组中

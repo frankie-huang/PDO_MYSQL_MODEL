@@ -1,6 +1,6 @@
 <?php 
 $CONFIG = array(
-    # 数据库默认配置信息
+    # 数据库默认配置信息，必选，且索引必须为0
     0 => array(
         "hostname" => '127.0.0.1', # 可选，默认127.0.0.1
         "username" => 'root', # 可选，默认root

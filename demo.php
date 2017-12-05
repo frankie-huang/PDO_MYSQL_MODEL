@@ -7,16 +7,17 @@ require_once "PDO_MySQL.class.php";
 // 配置文件初始化
 $link = M("fills");
 
-// 参数初始化
+// 数组参数初始化
 $dbConfig = array(
     'hostname' => '127.0.0.1',
     'username'=>'root',
     'password'=>'root',
     'database'=>'db_name',
-    'DB_TYPE'=>'mysql',
 );
-$link = M('fills', $dbConfig);
+$link = M('fills', 1, $dbConfig);
 
+# 如果需要此配置（上面的$dbConfig数组）切换数据表，既可以使用$link->table('other_table')，也可以如下使用
+$other_table = M('other_table', 1);
 
 
 ## 1. select
@@ -84,6 +85,20 @@ dump($link->where($delete_where)->delete()); //返回删除成功的行数或fal
 dump($link->table('users as t1')->join('chat.users as t2 on t1.user_id=t2.user_id')->delete('t2'));
 
 
-dump($link->_sql()); //打印最后一条被执行的SQL语句
+## 7.  打印当前模型执行的最后一条SQL语句
+dump($link->getLastSql());
+dump($link->_sql());
+
+
+## 8. 事务驱动
+$link->startTrans(); # 开启事务
+$link->inTrans(); # 判断事务处于事务中，是则返回true
+$link->where('u_id=1')->delete();
+if ( $something == true ) {
+    $link->commit();
+} else {
+    $link->rollback();
+}
+
 
 ?>
