@@ -27,6 +27,11 @@
  - 修复表达式查询和多条件查询情况下无限加反引号的Bug
  - 增加 TO DO list （其实是BUG清单，先挖好坑）
 
+### 2017.12.05更新
+ - 使用类静态变量 `static $configs` 数组存数据库配置信息
+ - 使用类静态变量 `static $links` 数组存数据库连接，相同数据库配置的共享一个 link
+ - 使用上面两种思路，可以通过配置使用不同数据库，同时实现了事务跨模型生效
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -42,20 +47,27 @@ $link = M("users");
 ```
 <?php
 require_once "PDO_MySQL.class.php";
-$dbConfig = array(...);//具体键值参数信息参照配置文件格式
-$link = M("users",$dbConfig);
+$dbConfig = array(
+    'hostname' => '127.0.0.1', # 可选
+    'username'=>'root', # 可选
+    'password'=>'pwd', # 如无，程序会使用配置文件声明的数据库密码
+    'database'=>'db_name', # 必选
+);
+# 此处的1为配置代号，支持字符串代号，之后可直接使用配置代号切换数据表
+$link = M("users", 1, $dbConfig);
 ```
 **推荐使用配置文件的方法**，支持的配置信息：
 ```
-define("DB_HOST",'127.0.0.1');   //服务器地址
-define("DB_USER",'root');        //用户名
-define('DB_PWD','root');         //密码
-define('DB_NAME','chat');        //数据库名
-define('DB_PORT','3306');        //端口号
-define('DB_TYPE','mysql');       //数据库类型
-define('DB_CHARSET','utf8');     //编码格式
-define('DB_DEBUG',true);         //是否开启DEBUG模式，系统上线关闭DEBUG模式
-define('MYSQL_LOG','/mysql.log');//定义mysql的log文件路径，请先确保有读权限
+'hostname'  => '127.0.0.1', # 可选，服务器地址，默认127.0.0.1
+'username'  => 'root',      # 可选，数据库用户名，默认root
+'password'  => 'pwd',       # 必选，数据库密码
+'database'  => 'db_name',   # 必选，数据库名
+'hostport'  => '3306',      # 可选，端口号，默认3306
+'dbms'      => 'mysql',     # 可选，数据库类型，默认mysql
+'pconnect'  => false,       # 可选，是否开启长连接，默认false
+'charset'   => 'utf8',      # 可选，数据库编码格式
+'DB_DEBUG'  => true,        # 可选，是否开启DEBUG模式，请在系统上线后关闭DEBUG模式
+'MYSQL_LOG' => '/mysql.log' # 可选，定义mysql的log文件路径，请先确保有读权限
 ```
 其中，要定义`MYSQL_LOG`，请先开启mysql的通用查询日志（general_log），开启后才能使用getLastLog()函数，而且这会消耗mysql很大的性能，**这一项仅仅为了debug**。
 >只有general_log才是记录所有的操作日志,不过会耗费数据库5%-10%的性能,所以一般没什么特别需要,大多数情况是不开的。
@@ -72,43 +84,43 @@ mysql> set global general_log_file=/path/to/mysql.log
 ##### 1.字符串条件
 使用字符串条件直接查询和操作,例如:
 ```
-$User	=	M("User");	//	实例化User对象
-$User->where('type=1	AND	status=1')->select();
+$User = M("User"); // 实例化User对象
+$User->where('type=1 AND status=1')->select();
 ```
 最后生成的SQL语句是
 ```
-SELECT	*	FROM	think_user	WHERE	type=1	AND	status=1
+SELECT * FROM think_user WHERE type=1 AND status=1
 ```
 使用字符串条件的时候,建议配合预处理机制,确保更加安全,例如:
 ```
-$Model->where("id=%d	and	username='%s'	and	xx='%f'",array($id,$username,$xx))->select();
+$Model->where("id=%d and username='%s' and xx='%f'",array($id,$username,$xx))->select();
 ```
 或者使用:
 ```
-$Model->where("id=%d	and	username='%s'	and	xx='%f'",$id,$username,$xx)->select();
+$Model->where("id=%d and username='%s' and xx='%f'",$id,$username,$xx)->select();
 ```
-如果 $id 变量来自用户提交或者URL地址的话,如果传入的是非数字类型,则会强制格式化为数字格式后进行查询操作。
+如果 `$id` 变量来自用户提交或者URL地址的话,如果传入的是非数字类型,则会强制格式化为数字格式后进行查询操作。
 字符串预处理格式类型支持指定数字、字符串等,具体可以参考vsprintf方法的参数说明。
 ##### 2.数组条件
 数组条件的where用法是ThinkPHP推荐的用法。
 
 支持普通查询
 ```
-$User	=	M("User");	//	实例化User对象
-$map['name']	=	'thinkphp';
-$map['status']	=	1;
-//	把查询条件传入查询方法
+$User = M("User"); // 实例化User对象
+$map['name'] = 'thinkphp';
+$map['status'] = 1;
+// 把查询条件传入查询方法
 $User->where($map)->select();	
 ```
 最后生成的SQL语句是
 ```
-SELECT	*	FROM	think_user	WHERE	`name`='thinkphp'	AND	status=1
+SELECT * FROM think_user WHERE `name`='thinkphp' AND status=1
 ```
 支持[表达式查询](#expression)
 ```
-$map['字段1']		=	array('表达式','查询条件1');
-$map['字段2']		=	array('表达式','查询条件2');
-$Model->where($map)->select();	//	也支持
+$map['字段1'] = array('表达式','查询条件1');
+$map['字段2'] = array('表达式','查询条件2');
+$Model->where($map)->select(); // 也支持
 ```
 支持多次调用。
 #### 2.TABLE
@@ -369,7 +381,7 @@ Ajax方式返回数据到客户端
 PHP的html解码/解码函数
 
 ## TO DO list
- - 事务暂时不支持跨模型操作
+ - ~~事务暂时不支持跨模型操作~~ （2017.12.05完成）
  - field之字段过滤目前仅支持单表查询
 
 ## Github永久更新地址
