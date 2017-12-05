@@ -2,12 +2,18 @@
 //header('content-type:text/html;charset=utf-8');
 class PDOMySQL
 {
-    private $config=array();//设置连接参数，配置信息
-    private $link=null;//保存连接标识符
+    static $configs = array();// 设置连接参数，配置信息(数组)
+    static $links = array();// 保存连接标识符(数组)
+    static $NumberLink = 0; // 保存数据库连接数量/配置信息数量
+
+    private $current = 0; //标识当前对应的数据库配置，可以是数字或者字符串
+    private $config = array(); //保存当前模型的数据库配置
+    private $link = null; //保存当前模型的数据库连接标识符
+
     private $dbdebug=false;//是否开启DEBUG模式
+
     private $table='';//记录操作的数据表名
     private $columns=array();//记录表中字段名
-    private $pconnect=false;//是否开启长连接
     private $dbVersion=null;//保存数据库版本
     private $connected=false;//是否连接成功
     private $PDOStatement=null;//保存PDOStatement对象
@@ -15,7 +21,6 @@ class PDOMySQL
     private $error=null;//报错错误信息
     private $lastInsertId=null;//保存上一步插入操作产生AUTO_INCREMENT
     private $numRows=0;//上一步操作产生受影响的记录的条数
-    private $MySQL_log='';//MySQL的日志文件路径
 
     private $tmp_table='';
     private $aliasString='';
@@ -36,87 +41,130 @@ class PDOMySQL
     /**
      * 构造函数，连接PDO
      * @param string $dbtable
+     * @param int/string $ConfigID
      * @param array $dbConfig
      * @return boolean
-     * $dbConfig数组至少需要指定hostname、username、password、database、DB_TYPE
-     * 如果想开启debug模式，指定$dbConfig["DB_DEBUG"]=true
-     * 可以通过$dbConfig["MYSQL_LOG"]='/path/to/mysql.log'指定mysql的日志文件路径
+     * $dbConfig数组至少需要database
+     * 如果想开启debug模式，指定 $dbConfig["DB_DEBUG"] = true
+     * 可以通过 $dbConfig["MYSQL_LOG"] = '/path/to/mysql.log' 指定mysql的日志文件路径
      */
-    public function __construct($dbtable, $dbConfig = '')
+    public function __construct($dbtable, $ConfigID = 0, $dbConfig = null)
     {
         if (!class_exists("PDO")) {
             $this->throw_exception("不支持PDO，请先开启", true);
             return false;
         }
-        if ($dbConfig!=''&&!is_array($dbConfig)) {
-            $this->throw_exception("数据库配置信息参数需使用数组形式传入", true);
+        if (!is_integer($ConfigID) && !is_string($ConfigID)) {
+            $this->throw_exception("第二个参数只能是数字或字符串", true);
             return false;
         }
-        if ($dbConfig=='') {
-            if (defined('DB_DEBUG')&&DB_DEBUG===true) {
-                $this->dbdebug = true;
+        # 如果数据库配置已被存在self::$configs中时
+        if (isset(self::$configs[$ConfigID])) {
+            if ($dbConfig != null) {
+                $this->throw_exception('数据库配置编号'.$ConfigID.'已被占用', true);
+                return false;
             }
-            if (defined('MYSQL_LOG')&&is_string(MYSQL_LOG)) {
-                $this->MySQL_log = MYSQL_LOG;
+            $this->init($ConfigID, $dbtable);
+            return true;
+        }
+        # 以下为数据库配置还未被存在self::$configs中时
+        if ($dbConfig == null) {
+            if (!defined('CONFIG')) {
+                $this->throw_exception("配置文件未定义CONFIG", true);
+                return false;
             }
-            $dbConfig=array(
-                'hostname'=>DB_HOST,
-                'username'=>DB_USER,
-                'password'=>DB_PWD,
-                'database'=>DB_NAME,
-                'hostport'=>DB_PORT,
-                'dbms'=>DB_TYPE,
-                'dsn'=>DB_TYPE.":host=".DB_HOST.";dbname=".DB_NAME
-            );
-        } else {
-            if (isset($dbConfig['DB_DEBUG'])&&$dbConfig['DB_DEBUG']) {
-                $this->dbdebug = true;
-                unset($dbConfig['DB_DEBUG']);
+            # 检查配置文件中是否有对应的配置信息
+            if (!isset(CONFIG[$ConfigID])) {
+                $this->throw_exception("配置文件中无".$ConfigID."的配置信息", true);
+                return false;
             }
-            if (isset($dbConfig['MYSQL_LOG'])&&is_string($dbConfig['MYSQL_LOG'])) {
-                $this->MySQL_log = $dbConfig['MYSQL_LOG'];
-                unset($dbConfig['MYSQL_LOG']);
+            # 使用配置文件中对应的配置
+            if ($ConfigID === 0){
+                $dbConfig = CONFIG[0];
+            } else {
+                $default_dbConfig = CONFIG[0];
+                $dbConfig = array_merge($default_dbConfig, CONFIG[$ConfigID]);
             }
-            $dbConfig['dsn'] = $dbConfig['DB_TYPE'].":host=".$dbConfig['hostname'].";dbname=".$dbConfig['database'];
+        }
+        if (isset($dbConfig['DB_DEBUG']) && $dbConfig['DB_DEBUG'] === true) {
+            $this->dbdebug = true;
+        }
+        if (empty($dbConfig['password'])) {
+            if (isset(CONFIG[0]['password'])){
+                $dbConfig['password'] = CONFIG[0]['password'];                
+            } else {
+                $this->throw_exception('数据库未设置密码');
+                return false;
+            }
         }
         if (empty($dbConfig['hostname'])) {
-            $this->throw_exception('没有定义数据库配置，请先定义');
+            $dbConfig['hostname'] = '127.0.0.1';
+        }
+        if (empty($dbConfig['username'])) {
+            $dbConfig['username'] = 'root';
+        }
+        if (empty($dbConfig['hostport'])) {
+            $dbConfig['hostport'] = '3306';
+        }
+        if (empty($dbConfig['dbms'])) {
+            $dbConfig['dbms'] = 'mysql';
+        }
+        if (empty($dbConfig['params'])) {
+            $dbConfig['params'] = array();
+        }
+        $dbConfig['dsn'] = $dbConfig['dbms'].':host='.$dbConfig['hostname'].';port='.$dbConfig['hostport'].';dbname='.$dbConfig['database']; 
+        self::$configs[$ConfigID] = $dbConfig;
+        $this->config = $dbConfig;
+        if (isset($dbConfig['pconnect']) && $dbConfig['pconnect'] === true) {
+            //开启长连接，添加到配置数组中
+            $dbConfig['params'][constant("PDO::ATTR_PERSISTENT")]=true;
+        }
+        try {
+            $this->link = new PDO($dbConfig['dsn'], $dbConfig['username'], $dbConfig['password'], $dbConfig['params']);
+        } catch (PDOException $e) {
+            $this->throw_exception($e->getMessage());
             return false;
         }
-        $this->config=$dbConfig;
-        if (empty($this->config['params'])) {
-            $this->config['params']=array();
+        # 设置 $this->link, $this->table, $this->dbVersion, $this->connected, 以及设置数据库编码
+        if ($this->link) {
+            self::$links[$ConfigID] = $this->link;
+        } else {
+            $this->throw_exception('PDO连接错误');
+            return false;
         }
-        if (!isset($this->link)) {
-            $configs=$this->config;
-            if ($this->pconnect) {
-                //开启长连接，添加到配置数组中
-                $configs['params'][constant("PDO::ATTR_PERSISTENT")]=true;
-            }
-            try {
-                $this->link=new PDO($configs['dsn'], $configs['username'], $configs['password'], $configs['params']);
-            } catch (PDOException $e) {
-                $this->throw_exception($e->getMessage());
-                return false;
-            }
-            if (!$this->link) {
-                $this->throw_exception('PDO连接错误');
-                return false;
-            }
-            if (!$this->in_db($dbtable)) {
-                $this->throw_exception('数据库'.$dbConfig['database'].'中不存在'.$dbtable.'表');
-                return false;
-            }
+        if ($this->in_db($dbtable)) {
             $this->table=$dbtable;
-            if (defined('DB_CHARSET')) {
-                $this->link->exec('SET NAMES '.DB_CHARSET);                
-            } elseif (isset($dbConfig['DB_CHARSET'])) {
-                $this->link->exec('SET NAMES '.$dbConfig['DB_CHARSET']);
-            }
-            $this->dbVersion=$this->link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
-            $this->connected=true;
-            unset($configs);
+        } else {
+            $this->throw_exception('数据库'.$dbConfig['database'].'中不存在'.$dbtable.'表');
+            return false;
         }
+        if (!empty($dbConfig['charset'])) {
+            $this->link->exec('SET NAMES '.$dbConfig['charset']);                
+        }
+        $this->dbVersion = $this->link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
+        $this->connected = true;
+        # 最后将数据库连接数 + 1
+        self::$NumberLink++;
+    }
+
+    /**
+     * 初始化当前模型的参数
+     */
+    private function init($current, $dbtable){
+        $this->current = $current;
+        $this->config = self::$configs[$current];
+        $this->link = self::$links[$current];
+        if (isset($this->config['DB_DEBUG']) && $this->config['DB_DEBUG'] === true) {
+            $this->dbdebug = true;
+        }
+        if ($this->in_db($dbtable)) {
+            $this->table=$dbtable;
+        } else {
+            $this->throw_exception('数据库'.$this->config['database'].'中不存在'.$dbtable.'表');
+            return false;
+        }
+        $this->dbVersion=$this->link->getAttribute(constant("PDO::ATTR_SERVER_VERSION"));
+        $this->connected=true;
     }
 
     /**
@@ -1097,8 +1145,9 @@ class PDOMySQL
      */
     public function startTrans()
     {
-        $link = $this->link;
-        $link->beginTransaction();
+        foreach(self::$links as $link){
+            $link->beginTransaction();
+        }
     }
 
     /**
@@ -1115,11 +1164,8 @@ class PDOMySQL
      */
     public function rollback()
     {
-        $link = $this->link;
-        if ($this->inTrans()===true) {
+        foreach(self::$links as $link){
             $link->rollBack();
-        } else {
-            $this->throw_exception("当前不处于事务中");
         }
     }
 
@@ -1128,11 +1174,8 @@ class PDOMySQL
      */
     public function commit()
     {
-        $link = $this->link;
-        if ($this->inTrans()===true) {
+        foreach(self::$links as $link){
             $link->commit();
-        } else {
-            $this->throw_exception("当前不处于事务中");
         }
     }
 
@@ -1172,11 +1215,11 @@ class PDOMySQL
             $this->throw_exception('请先开启DEBUG模式');
             return false;
         }
-        if ($this->MySQL_log=='') {
+        if (empty($this->config['MySQL_log'] == '')) {
             $this->throw_exception('尚未指定SQL日志文件的路径');
             return false;
         }
-        $get_file_lastline = $this->get_file_lastline($this->MySQL_log);
+        $get_file_lastline = $this->get_file_lastline($this->config['MySQL_log']);
         if ($get_file_lastline===false) {
             return false;
         } else {
@@ -1705,8 +1748,8 @@ class PDOMySQL
      */
     public function haveErrorThrowException()
     {
-        $obj=empty($this->PDOStatement)?$this->link: $this->PDOStatement;
-        $arrError=$obj->errorInfo();
+        $link = empty($this->PDOStatement) ? $this->link : $this->PDOStatement;
+        $arrError = $link->errorInfo();
         //print_r($arrError);
         if ($arrError[0]!='00000') {
             $this->error='SQLSTATE: '.$arrError[0].' <br/>SQL Error: <div>'.$arrError[2].'</div><br/>Error SQL: <div>'.$this->queryStr.'</div>';
@@ -1803,10 +1846,11 @@ class PDOMySQL
         $this->close();
     }
 }
+
 //M函数
-function M($dbtable, $dbConfig = '')
+function M($dbtable, $ConfigID = 0, $dbConfig = null)
 {
-    return new PDOMySQL($dbtable, $dbConfig);
+    return new PDOMySQL($dbtable, $ConfigID, $dbConfig);
 }
 
 function filter(&$value)
