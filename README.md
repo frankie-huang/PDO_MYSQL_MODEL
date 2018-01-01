@@ -120,7 +120,7 @@ SELECT * FROM think_user WHERE `name`='thinkphp' AND status=1
 ```
 $map['字段1'] = array('表达式','查询条件1');
 $map['字段2'] = array('表达式','查询条件2');
-$Model->where($map)->select(); // 也支持
+$Model->where($map)->select();
 ```
 支持多次调用。
 #### 2.TABLE
@@ -151,11 +151,11 @@ $Model->field(array('id','nickname'=>'name'))->select();
 ```
 对于一些更复杂的字段要求，数组的优势则更加明显，例如：
 ```
-$Model->field(array('id','concat(name,'-',id)'=>'truename','LEFT(title,7)'=>'sub_title'))->select();
+$Model->field(array('id','concat(name,"-",id)'=>'truename','LEFT(title,7)'=>'sub_title'))->select();
 ```
 执行的SQL相当于：
 ```
-SELECT id,concat(name,'-',id) as truename,LEFT(title,7) as sub_title FROM table
+SELECT id,concat(name,"-",id) as truename,LEFT(title,7) as sub_title FROM table
 ```
 支持获取所有字段和过滤字段(详见ThinkPHP3.2.3文档)。
 #### 5.ORDER
@@ -185,6 +185,7 @@ M('t1')->join(array('t2 on t1.id=t2.id','LEFT'))->select();
 //相当于select * from t1 LEFT JOIN t2 on t1.id=t2.id
 ```
 支持多次调用。
+>注：MySQL其实不支持FULL JOIN，建议用 left join + union(可去除重复数据)+ right join 作为替代方案。
 #### 11.fetchSql
 用法与ThinkPHP相同
 ### 3.支持的CURD操作（增删查改）
@@ -289,7 +290,12 @@ $User->join('t2 on t2.id = t1.id')->delete('t1');
 `$map['name'] = array('ThinkPHP',array('like','%a%'),'or','_tomulti'=>true);`
 即`name='ThinkPHP' OR name LIKE '%a%'`
 
-其中"_tomulti"关键词主要是为了与表达式查询做区分，举个例子：`$map['name'] = array('ThinkPHP','is null')`和`$map['name'] = array('exp','is null')`，后者本来是表达式查询，但是还可以被辨别为`name='exp' AND name='is null'`。
+其中"_tomulti"关键词主要是为了与表达式查询做区分。
+>举个例子：
+`$map['name'] = array('ThinkPHP','is null')`和`$map['name'] = array('exp','is null')`
+后者本来是表达式查询，但是还可以被辨别为`name='exp' AND name='is null'`；
+所以干脆给前者加个`"_tomulti"=>true`表示非表达式查询，解析为`name='ThinkPHP' AND name='is null'`。
+后者没有"_tomulti"关键词，解析为`name is null`。
 
 #### 1.查询方法
 支持字符串查询和数组查询，懒得支持对象查询。
