@@ -246,14 +246,14 @@ $User->save($data); // 根据条件保存修改的数据
 ```
 $User = M("User"); // 实例化User对象
 // 更改用户的name值
-$User-> where('id=5')->setField('name','ThinkPHP');
+$User->where('id=5')->setField('name','ThinkPHP');
 ```
 setField方法支持同时更新多个字段，只需要传入数组即可(这将与save相同)
 ```
 $User = M("User"); // 实例化User对象
 // 更改用户的name和email的值
 $data = array('name'=>'ThinkPHP','email'=>'ThinkPHP@gmail.com');
-$User-> where('id=5')->setField($data);
+$User->where('id=5')->setField($data);
 ```
 而对于统计字段（通常指的是数字类型）的更新，还提供了setInc 和setDec 方法。
 ```
@@ -393,9 +393,13 @@ PHP的html解码/解码函数
 ## Github永久更新地址
 [frankie-huang/PDO_MYSQL_MODEL][1]
 
+## python版
+[pythonMySQL][2]
+
 ## 参考链接
-[ThinkPHP3.2.3完全开发手册在线文档][2]
+[ThinkPHP3.2.3完全开发手册在线文档][3]
 
 
   [1]: https://github.com/frankie-huang/PDO_MYSQL_MODEL
-  [2]: https://www.kancloud.cn/manual/thinkphp/1678
+  [2]: https://github.com/frankie-huang/pythonMySQL
+  [3]: https://www.kancloud.cn/manual/thinkphp/1678

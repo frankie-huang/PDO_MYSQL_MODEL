@@ -2,6 +2,8 @@
 //header('content-type:text/html;charset=utf-8');
 class PDOMySQL
 {
+    static $__author__ = 'Frankie';
+
     static $configs = array();// 设置连接参数，配置信息(数组)
     static $links = array();// 保存连接标识符(数组)
     static $NumberLink = 0; // 保存数据库连接数量/配置信息数量
@@ -1858,13 +1860,9 @@ function filter(&$value)
 {
     $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
-//I函数
+//I函数，参数为字符串
 function I($str)
 {
-    if (!is_string($str)) {
-        PDOMySQL::throw_exception("I函数参数类型错误：".$str);
-        return false;
-    }
     $pos = strrpos($str, '.', -1);
     if ($pos===false) {
         PDOMySQL::throw_exception("I函数参数错误");
@@ -1881,6 +1879,10 @@ function I($str)
             }
             break;
         case 'POST':
+            // 如果$_POST中无数据，则从php://input中取
+            if (count($_POST) == 0) {
+                $_POST = json_decode(file_get_contents('php://input'), true);
+            }
             if ($param!='') {
                 $result_set = $_POST[$param];
             } else {
