@@ -32,6 +32,9 @@
  - 使用类静态变量 `static $links` 数组存数据库连接，相同数据库配置的共享一个 link
  - 使用上面两种思路，可以通过配置使用不同数据库，同时实现了事务跨模型生效
 
+### 2018.01.12更新
+ - 表达式查询增加REGEXP（SQL正则表达式查询）
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -301,7 +304,14 @@ $User->join('t2 on t2.id = t1.id')->delete('t1');
 支持字符串查询和数组查询，懒得支持对象查询。
 以及**推荐使用数组查询**，因为where查询直接传字符串不做任何检查（不安全所以不支持）
 <h4 id="expression">2.表达式查询</h4>
-用法与ThinkPHP相同
+增加了REGEXP（SQL正则表达式查询）：
+```
+# WHERE `name` REGEXP '^Fran'
+$where['name'] = array('REGEXP', '^Fran'); # 可匹配到name为Frankie的数据
+# WHERE `name` REGEXP '\d' OR `name` REGEXP '\w'
+$where['name'] = array('REGEXP', array('\d', '\w'), 'OR');
+```
+其他用法与ThinkPHP相同
 
 #### 3.快捷查询
 与ThinkPHP语法的不同处：

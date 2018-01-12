@@ -1578,6 +1578,33 @@ class PDOMySQL
                     return false;
                 }
                 break;
+            case "REGEXP":
+                $string = ' REGEXP ';
+                if (is_array($array[1])) {
+                    $logic = ' AND ';
+                    if (isset($array[2])) {
+                        if (in_array(strtoupper($array[2]), $this->SQL_logic)) {
+                            $logic = ' '.strtoupper($array[2]).' ';
+                        } else {
+                            if (!is_string($array[2])) {
+                                $this->throw_exception('[NOT] REGEXP查询中的数组第三个元素必须为字符串，用于指定逻辑运算符');
+                                return false;
+                            }
+                            $this->throw_exception('[NOT] REGEXP查询中的逻辑运算符"'.$array[2].'"不被支持');
+                            return false;
+                        }
+                    }
+                    foreach ($array[1] as $val) {
+                        $expQueryString .= $logic.$column.$string.' ?';
+                        $this->whereValueArray[] = (string)$val;
+                    }
+                    $expQueryString = ltrim($expQueryString, $logic);
+                    $expQueryString = '( '.$expQueryString.' )';
+                } else {
+                    $expQueryString .= $column.$string.' ?';
+                    $this->whereValueArray[] = $array[1];
+                }
+                break;
             case "EXP":
                 if (is_string($array[1])) {
                     $expQueryString .= $column.$array[1];
