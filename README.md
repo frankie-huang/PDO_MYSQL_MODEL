@@ -304,7 +304,8 @@ $User->join('t2 on t2.id = t1.id')->delete('t1');
 支持字符串查询和数组查询，懒得支持对象查询。
 以及**推荐使用数组查询**，因为where查询直接传字符串不做任何检查（不安全所以不支持）
 <h4 id="expression">2.表达式查询</h4>
-增加了REGEXP（SQL正则表达式查询）：
+
+增加了REGEXP（SQL正则表达式查询）:<br>
 ```
 # WHERE `name` REGEXP '^Fran'
 $where['name'] = array('REGEXP', '^Fran'); # 可匹配到name为Frankie的数据
