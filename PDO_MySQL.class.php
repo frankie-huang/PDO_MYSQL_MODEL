@@ -231,9 +231,8 @@ class PDOMySQL
                 $whereSubString = '( '.$whereSubString.' )';
             }
         } elseif (is_array($where[0])) {
-            if ($param_number>1) {
-                $this->throw_exception("where子句传入数组参数仅支持一个参数");
-                return false;
+            if (count($where[0]) == 0) {
+                return $this;
             }
             $whereSubString = $this->parseWhereArrayParam($where[0]);
         }
@@ -246,7 +245,7 @@ class PDOMySQL
      */
     public function parseWhere()
     {
-         $length = count($this->whereStringArray);
+        $length = count($this->whereStringArray);
         if ($length == 0) {
             return;
         }
