@@ -20,7 +20,7 @@ class PDOMySQL
     private $connected=false;//是否连接成功
     private $PDOStatement=null;//保存PDOStatement对象
     private $queryStr=null;//保存最后执行的操作
-    private $error=null;//报错错误信息
+    private $SQLerror=null;//报错错误信息
     private $lastInsertId=null;//保存上一步插入操作产生AUTO_INCREMENT
     private $numRows=0;//上一步操作产生受影响的记录的条数
 
@@ -1758,6 +1758,7 @@ class PDOMySQL
      */
     private function clearSubString()
     {
+        $this->SQLerror = null;
         $this->fieldString='';
         $this->joinString='';
         $this->whereString='';
@@ -1779,17 +1780,30 @@ class PDOMySQL
     {
         $link = empty($this->PDOStatement) ? $this->link : $this->PDOStatement;
         $arrError = $link->errorInfo();
-        //print_r($arrError);
         if ($arrError[0]!='00000') {
-            $this->error='SQLSTATE: '.$arrError[0].' <br/>SQL Error: <div>'.$arrError[2].'</div><br/>Error SQL: <div>'.$this->queryStr.'</div>';
-            $this->throw_exception($this->error);
-            return false;
-        }
-        if ($this->queryStr=='') {
-            $this->throw_exception('没有执行SQL语句');
+            if ($this->dbdebug) {
+                $this->SQLerror = [
+                    'sqlstate' => $arrError[0],
+                    'errno' => $arrError[1],
+                    'msg' => $arrError[2],
+                    'sql' => $this->queryStr
+                ];
+            }
             return false;
         }
         return true;
+    }
+
+    /**
+     * 打印SQL错误信息
+     */
+    public function showError()
+    {
+        if ($this->SQLerror == null) {
+            $this->throw_exception('没有开启DEBUG模式无法看到详细错误信息，或者最近一次SQL操作并没有发生错误', false, false);
+        } else {
+            $this->throw_exception('Error Code: '.$this->SQLerror['errno'].'<br/>SQLSTATE: '.$this->SQLerror['sqlstate'].' <br/>Error Message: <div>'.$this->SQLerror['msg'].'</div><br/>Error SQL: <div>'.$this->SQLerror['sql'].'</div>', false, false);
+        }
     }
      
     /**
@@ -1797,12 +1811,12 @@ class PDOMySQL
      * @param unknown $errMsg
      * @param boolean $ignore_debug
      */
-    public function throw_exception($errMsg, $ignore_debug = false)
+    public function throw_exception($errMsg, $ignore_debug = false, $exit = true)
     {
         $bt = debug_backtrace();
         $caller = array_shift($bt);
         if ($this->dbdebug || $ignore_debug) {
-            $errMsg .= '</b><br/><br/><b>错误位置</b><br>FILE: '.$caller['file'].'   LINE: '.$caller['line'];
+            $errMsg .= '</b><br/><br/><b>SOURCE</b><br>FILE: '.$caller['file'].'   LINE: '.$caller['line'];
             $caller = array_shift($bt);
             $number = 0;
             if ($caller != null) {
@@ -1818,8 +1832,10 @@ class PDOMySQL
         }
         echo '<div style="width:80%;background-color:#ABCDEF;color:black;padding:20px 0px;"><b style="font-size:25px;">
 				'.$errMsg.'
-        </div>';
-        exit(0);
+        </div><br/>';
+        if ($exit) {
+            exit(0);
+        }
     }
 
     /**

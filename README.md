@@ -35,6 +35,9 @@
 ### 2018.01.12更新
  - 表达式查询增加REGEXP（SQL正则表达式查询）
 
+### 2018-02-04更新
+ - 完善对SQL执行出错的错误处理机制（增加了`showError()`成员函数用于打印SQL错误信息）
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -192,19 +195,20 @@ M('t1')->join(array('t2 on t1.id=t2.id','LEFT'))->select();
 #### 11.fetchSql
 用法与ThinkPHP相同
 ### 3.支持的CURD操作（增删查改）
+以下操作失败都返回false
 #### 1.数据读取
 ##### find()
 读取数据（仅一条）
 ```
 $data = $User->where('status=1 AND name="thinkphp"')->find();
 ```
-查询成功返回一维数组，如果无数据返回NULL，失败返回false
+查询成功返回一维数组，如果无数据返回NULL
 ##### select()
 读取数据集
 ```
 $list = $User->where('status=1')->order('create_time')->limit(10)->select();
 ```
-查询成功返回二维数组，如果无数据返回NULL，失败返回false
+查询成功返回二维数组，如果无数据返回NULL
 #### 2.数据插入
 ##### add()
 传入数组
@@ -214,7 +218,7 @@ $data['name'] = 'ThinkPHP';
 $data['email'] = 'ThinkPHP@gmail.com';
 $User->add($data);
 ```
-插入成功返回插入数据的ID，失败返回false
+插入成功返回插入数据的自增ID（如果无自增ID将返回0）
 ##### addAll()
 批量写入（须传入二维数组）
 ```
@@ -222,9 +226,10 @@ $dataList[] = array('name'=>'thinkphp','email'=>'thinkphp@gamil.com');
 $dataList[] = array('name'=>'onethink','email'=>'onethink@gamil.com');
 $User->addAll($dataList);
 ```
-插入成功返回其中第一条插入数据的ID，失败返回false
+插入成功返回其中第一条插入数据的ID（如果数据表无ID将返回0）
+注：如果插入的数据都指定了自增ID，将返回最后一条数据的自增ID
 #### 3.数据更新
-返回值都是影响的记录数，失败返回false。
+返回值都是影响的记录数（如果更新前的数据和更新后的没有变化，则返回0）
 ##### save()
 ```
 $User = M("User"); // 实例化User对象
@@ -268,7 +273,7 @@ $User->where('id=5')->setDec('score'); // 用户的积分减1
 ```
 不支持延迟更新。
 #### 4.数据删除
-返回是删除的记录数，删除失败返回false。
+返回是删除的记录数。
 
 不支持传入主键删除数据（与ThinkPHP有区别）
 
@@ -383,7 +388,7 @@ $link = M("users");
 暂时只支持get和post（需要再说）
 使用htmlspecialchars()对数据进行预处理
 #### 3.dump()
-~~高仿~~tp的dump方法。
+~~高仿~~ tp的dump方法。
 #### 4.ajaxReturn()
 Ajax方式返回数据到客户端
 暂时只支持返回json格式数据
@@ -393,8 +398,19 @@ Ajax方式返回数据到客户端
 `getLastSql()`和`_sql()`等效，用于打印最后一条执行的**SQL语句**（由系统封装）
 `getLastLog()`则是读取**MySQL通用查询日志**记录的最后一条SQL语句
 
-其中，当且仅当DEBUG模式开启，以上方法才生效。注意，使用`getLastLog()`须开启MySQL的通用查询日志以及指定MySQL通用日志目录（见[开启MySQL通用查询日志](#general_log)）。
-#### 7.html_encode()和html_decode()
+其中，当且仅当DEBUG模式开启，以上方法才会输出详细信息。注意，使用`getLastLog()`须开启MySQL的通用查询日志以及指定MySQL通用日志目录（见[开启MySQL通用查询日志](#general_log)）。
+#### 7.showError()
+当SQL语句执行出错时可调用`showError()`打印详细的错误信息；
+
+当然，也可以通过类成员变量`SQLerror`（关联数组，有如下的key）自行取错误信息：
+>errno：error number<br/>
+sqlstate：SQLSTATE value<br/>
+msg：error message<br/>
+sql：发生错误的SQL语句
+
+其中，当且仅当DEBUG模式开启，以上方法才会输出详细信息。
+
+#### 8.html_encode()和html_decode()
 PHP的html解码/解码函数
 
 ## TO DO list
