@@ -777,7 +777,9 @@ class PDOMySQL
         }
         $sqlString = 'INSERT INTO ' . $table_name . ' (' . $field_str . ') VALUES (' . $placeholder . ')';
         $res = $this->execute($sqlString);
-        if (is_string($res)) {
+        if ($res === false) {
+            return false;
+        } elseif (is_string($res)) {
             return $res;
         }
         $res = $this->link->lastInsertId();
@@ -849,7 +851,9 @@ class PDOMySQL
         }
         $sqlString = 'INSERT INTO ' . $table_name . ' (' . $field_str . ') VALUES ' . $valueListStr;
         $res = $this->execute($sqlString);
-        if (is_string($res)) {
+        if ($res === false) {
+            return false;
+        } elseif (is_string($res)) {
             return $res;
         }
         $res = $this->link->lastInsertId();
