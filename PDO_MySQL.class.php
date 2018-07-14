@@ -178,7 +178,7 @@ class PDOMySQL
      */
     private function in_db($dbtable)
     {
-        $stmt = $this->link->query("show tables");
+        $stmt = $this->link->query("SHOW TABLES");
         foreach ($stmt as $row) {
             if ($dbtable == $row[0]) {
                 return true;
@@ -208,8 +208,10 @@ class PDOMySQL
      * @param string/array/Variable-length_argument_lists $where
      * @return $this
      */
-    public function where(...$where)
+    public function where()
     {
+        // 可变数量的参数列表是PHP5.6+的特性，使用func_get_args()兼容PHP5.6-的版本
+        $where = func_get_args();
         $param_number = count($where);
         if (!is_string($where[0]) && !is_array($where[0])) {
             $this->throw_exception("where子句的参数只支持字符串和数组");
@@ -442,8 +444,10 @@ class PDOMySQL
      * @return $this
      * 示例：limit(10)/limit('10,25')/limit(10,25)
      */
-    public function limit(...$limit)
+    public function limit()
     {
+        // 可变数量的参数列表是PHP5.6+的特性，使用func_get_args()兼容PHP5.6-的版本
+        $limit = func_get_args();
         $param_number = count($limit);
         if ($param_number == 1) {
             if (!is_int($limit[0]) && !is_string($limit[0])) {
@@ -858,8 +862,10 @@ class PDOMySQL
      * @return 更新成功返回影响的记录数，没有更新数据返回0，更新过程出错返回false
      * 示例：update users inner join test set user_id='update' where users.id = test.id;
      */
-    public function setField(...$field)
+    public function setField()
     {
+        // 可变数量的参数列表是PHP5.6+的特性，使用func_get_args()兼容PHP5.6-的版本
+        $field = func_get_args();
         $param_number = count($field);
         if ($field === 0) {
             $this->throw_exception('setField子句须传入参数');
@@ -1783,12 +1789,12 @@ class PDOMySQL
         $arrError = $link->errorInfo();
         if ($arrError[0] != '00000') {
             if ($this->dbdebug) {
-                $this->SQLerror = [
+                $this->SQLerror = array(
                     'sqlstate' => $arrError[0],
                     'errno' => $arrError[1],
                     'msg' => $arrError[2],
                     'sql' => $this->queryStr,
-                ];
+                );
             }
             return false;
         }
