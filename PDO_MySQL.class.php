@@ -1829,6 +1829,18 @@ class PDOMySQL
     }
 
     /**
+     * 直接获取SQL错误时的SQLSTATE
+     */
+    public function getSQLstate()
+    {
+        if ($this->dbdebug) {
+            return $this->SQLerror['sqlstate'];
+        } else {
+            return '没有开启Debug模式';
+        }
+    }
+    
+    /**
      * 打印SQL错误信息
      */
     public function showError()
