@@ -782,8 +782,8 @@ class PDOMySQL
         } elseif (is_string($res)) {
             return $res;
         }
-        $res = $this->link->lastInsertId();
-        return $res;
+        $this->lastInsertId = $this->link->lastInsertId();
+        return $this->lastInsertId;
     }
 
     /**
@@ -856,8 +856,8 @@ class PDOMySQL
         } elseif (is_string($res)) {
             return $res;
         }
-        $res = $this->link->lastInsertId();
-        return $res;
+        $this->lastInsertId = $this->link->lastInsertId();
+        return $this->lastInsertId;
     }
 
     /**
