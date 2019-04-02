@@ -38,6 +38,9 @@
 ### 2018-02-04更新
  - 完善对SQL执行出错的错误处理机制（增加了`showError()`成员函数用于打印SQL错误信息）
 
+### 2019-04-02更新
+ - 增加对InnoDB存储引擎的共享锁和排他锁的支持
+
 ## 使用文档
 注：可结合ThinkPHP3.2.3的文档参考使用。
 ### 1.初始化
@@ -194,6 +197,17 @@ M('t1')->join(array('t2 on t1.id=t2.id','LEFT'))->select();
 >注：MySQL其实不支持FULL JOIN，建议用 left join + union(可去除重复数据)+ right join 作为替代方案。
 #### 11.fetchSql
 用法与ThinkPHP相同
+#### 12.lock
+加行锁（共享锁或排他锁），**仅支持 InnoDB 存储引擎，仅支持 SELECT 语句，且须在事务块中才能生效**
+有一个参数，传入字符串 "S" 或 "X"，分别代表共享锁和排他锁
+```
+$Model->where("id = 1")->lock("X")->select();
+```
+执行的SQL相当于
+```
+SELECT * FROM table WHERE id = 1 FOR UPDATE
+```
+
 ### 3.支持的CURD操作（增删查改）
 以下操作失败都返回false
 #### 1.数据读取

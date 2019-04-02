@@ -33,6 +33,7 @@ class PDOMySQL
     private $havingString = '';
     private $orderString = '';
     private $limitString = '';
+    private $lockString = '';
     private $fetchSql = false;
 
     private $whereStringArray = array();
@@ -562,6 +563,22 @@ class PDOMySQL
     }
 
     /**
+     * 加行锁（共享锁或排他锁）
+     * 仅支持 InnoDB 存储引擎，仅支持 SELECT 语句，且须在事务块中才能生效
+     * @param string $pattern 'S' 或 'X' 分别代表共享锁和排他锁
+     */
+    public function lock($pattern)
+    {
+        $pattern = strtoupper($pattern);
+        if ($pattern == 'S') {
+            $this->lockString = ' LOCK IN SHARE MODE';
+        } elseif ($pattern == 'X') {
+            $this->lockString = ' FOR UPDATE';
+        }
+        return $this;
+    }
+
+    /**
      * 统计查询之计数/count
      * @param string $field
      * @return number
@@ -712,7 +729,7 @@ class PDOMySQL
         $this->limitString = ' LIMIT 1';
         $this->fieldString = $this->fieldString == '' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString;
+        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString . $this->lockString;
         $res = $this->query($sqlString, true);
         return $res;
     }
@@ -732,7 +749,7 @@ class PDOMySQL
         }
         $this->fieldString = $this->fieldString == '' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString;
+        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString . $this->lockString;
         if (false === $query) {
             $this->fetchSql = true;
         }
@@ -1788,6 +1805,7 @@ class PDOMySQL
         $this->havingString = '';
         $this->orderString = '';
         $this->limitString = '';
+        $this->lockString = '';
         $this->aliasString = '';
         $this->tmp_table = '';
         $this->fetchSql = false;
