@@ -730,7 +730,7 @@ class PDOMySQL
         $this->fieldString = $this->fieldString == '' ? ' *' : $this->fieldString;
         $this->parseWhere();
         $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString . $this->lockString;
-        $res = $this->query($sqlString, true);
+        $res = $this->query($sqlString, null, true);
         return $res;
     }
 
@@ -1098,14 +1098,18 @@ class PDOMySQL
     /**
      * query方法/用于SQL查询
      * @param string $queryStr
+     * @param null/array $paramsArray
      * @param boolean $is_find 指定是否find方法，是则只返回第一条数据
      * @return array 返回查询到的数据
      */
-    public function query($queryStr, $is_find = false)
+    public function query($queryStr, $paramsArray = null, $is_find = false)
     {
         if (!is_string($queryStr)) {
             $this->throw_exception('query查询须传入字符串');
             return false;
+        }
+        if ($paramsArray != null) {
+            $this->whereValueArray = $paramsArray;
         }
         if ($this->fetchSql === true) {
             $buildSql = $this->replaceSpecialChar('/\?/', $this->whereValueArray, $queryStr);
@@ -1141,13 +1145,17 @@ class PDOMySQL
     /**
      * execute方法/用于SQL查询
      * @param string $execStr
+     * @param null/array $paramsArray
      * @return int 返回影响的记录数
      */
-    public function execute($execStr)
+    public function execute($execStr, $paramsArray = null)
     {
         if (!is_string($execStr)) {
             $this->throw_exception('execute查询须传入字符串');
             return false;
+        }
+        if ($paramsArray != null) {
+            $this->whereValueArray = $paramsArray;
         }
         if ($this->fetchSql === true) {
             $buildSql = $this->replaceSpecialChar('/\?/', $this->whereValueArray, $execStr);
@@ -1996,7 +2004,7 @@ function I($str)
             }
             break;
         default:
-        PDOMySQL::throw_exception("I函数不支持此参数：" . $str);
+            PDOMySQL::throw_exception("I函数不支持此参数：" . $str);
             return false;
     }
     if (is_array($result_set)) {
