@@ -702,7 +702,7 @@ class PDOMySQL
         }
         $this->fieldString = $this->fieldString == '' ? ' *' : $this->fieldString;
         $this->parseWhere();
-        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString;
+        $sqlString .= 'SELECT' . $this->fieldString . ' FROM ' . $table_name . $this->joinString . $this->whereString . $this->groupString . $this->havingString . $this->orderString . $this->limitString . $this->lockString;
         $buildSql = $this->replaceSpecialChar('/\?/', $this->whereValueArray, $sqlString);
         $this->clearSubString();
         return '( ' . $buildSql . ' )';
